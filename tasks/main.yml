@@ -1,0 +1,42 @@
+---
+- name: Pull container image
+  docker_image:
+    name: "{{ homeassistant_image }}:{{ homeassistant_version }}"
+  async: 1000
+  poll: 0
+  register: image_pull
+  notify: Restart home-assistant
+
+- name: Create home-assistant config directory
+  file:
+    path: "{{ home_assistant_config_dir }}"
+    state: directory
+    owner: root
+    group: root
+
+- name: Add unit file
+  template:
+    src: home-assistant.service.j2
+    dest: /etc/systemd/system/home-assistant.service
+    mode: 644
+    owner: root
+    group: root
+  register: unit_file
+  notify: Restart home-assistant
+
+- name: Reload systemd daemon
+  systemd:
+    daemon_reload: yes
+  when: unit_file.changed
+
+- name: Check status of image pull
+  async_status:
+    jid: "{{ image_pull.ansible_job_id }}"
+  register: job_result
+  until: job_result.finished
+  retries: 30
+
+- name: Enable home-assistant service
+  systemd:
+    name: home-assistant
+    enabled: true

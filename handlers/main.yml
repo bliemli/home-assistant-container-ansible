@@ -1,0 +1,5 @@
+---
+- name: Restart home-assistant
+  systemd:
+    name: home-assistant
+    state: restarted

@@ -1,0 +1,4 @@
+---
+homeassistant_image: homeassistant/home-assistant
+homeassistant_version: latest
+home_assistant_config_dir: /opt/home-assistant
